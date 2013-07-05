@@ -25,7 +25,7 @@ class EyeCalibration:
 		self.topRight = None
 		self.bottomLeft = None
 		self.bottomRight = None
-		self.center = None
+		self.center = Point(0, 0)
 
 		self.xBias = 0
 		self.yBias = 0
@@ -149,7 +149,7 @@ class EyeCalibration:
 				centroidPoint.toTuple(),
 				(
 					centroidPoint + 
-					lookingVector
+					lookingVector +
 				).toTuple(),
 				(0, 255, 0),
 				20
