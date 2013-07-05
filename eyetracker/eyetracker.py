@@ -25,10 +25,6 @@ class EyeTracker:
 			"cascades/haarcascade_eye_tree_eyeglasses.xml"
 		)
 
-		self.faceCascade = cv2.CascadeClassifier(
-			"cascades/haarcascade_frontalface_default.xml"
-		)
-
 		# pupil color constants
 		self.pupilThresh = 9000
 
