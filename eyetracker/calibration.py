@@ -28,7 +28,7 @@ class EyeCalibration:
 		self.xMax = self.tracker.getXScale()
 		self.yMax = self.tracker.getYScale()
 
-		self.rangePadding = 0
+		self.rangePadding = 10
 
 		self.headCenter = None
 
@@ -72,6 +72,30 @@ class EyeCalibration:
 			)
 		)
 
+	def getBoundaryRect(self, point, rects):
+		for r in rects:
+			if point.x <= r.x or point.x >= r.x + r.w:
+				continue
+			if point.y <= r.y + r.h and point.y >= r.y:
+				return r
+
+	def drawAllRectangles(self, img, rects):
+		for r in rects:
+			cv2.rectangle(
+				img,
+				(
+					r.x,
+					r.y
+				),
+				(
+					r.x + r.w,
+					r.y + r.h
+				),
+				(0, 0, 0),
+				5
+			)
+
+
 	def drawCanvas(self, img, avgDict, res):
 		avgLookingPoint = self.getAverageLookingPoint(avgDict)
 
@@ -104,12 +128,36 @@ class EyeCalibration:
 			)
 		)
 
+		try:
+			boundaryRect = self.getBoundaryRect(
+				canvasPoint, 
+				self.rects
+			)
+			cv2.rectangle(
+				img,
+				(
+					boundaryRect.x,
+					boundaryRect.y
+				),
+				(
+					boundaryRect.x + boundaryRect.w,
+					boundaryRect.y + boundaryRect.h
+				),
+				(255, 0, 0),
+				-1
+			)
+		except AttributeError:
+			pass
+
+		self.drawAllRectangles(img, self.rects)
+		"""
 		cv2.circle(
 			img, 
 			canvasPoint.toTuple(), 
 			5, (0, 0, 255), 5
 		)
 		return self
+		"""
 
 	def updateExistingValue(self, r):
 		r.pupil.centroid = self.movAvgDict[r.getId()]["centroid"].compound(
@@ -255,28 +303,60 @@ class EyeCalibration:
 			) for j in xrange(rowNum) for i in xrange(colNum)
 		]
 
+	def generateControlRectangles(self, rowNum, _colNum = None):
+		colNum = rowNum if _colNum == None else _colNum
+		xInc = self.canvasDim.x / (rowNum - 1)
+		yInc = self.canvasDim.y / (colNum - 1)
+		return [
+			self.tracker.Rectangle(
+				i * xInc, 
+				j * yInc,
+				xInc,
+				yInc
+			) for j in xrange(rowNum - 1) for i in xrange(colNum - 1)
+		]
+
 	def setCornerPointsInteractive(self):
 		self.lookingPointMovAvg.setLength(15)
 
 		points = self.generateCalibrationPoints(3)
+		self.rects = self.generateControlRectangles(6)
 
-		self.topLeft, _ = self.setPointAfterButton(circlePosition = points[0])
+		self.topLeft, _ = self.setPointAfterButton(
+			circlePosition = points[0]
+		)
 
-		self.topCenter, _ = self.setPointAfterButton(circlePosition = points[1])
+		self.topCenter, _ = self.setPointAfterButton(
+			circlePosition = points[1]
+		)
 
-		self.topRight, _ = self.setPointAfterButton(circlePosition = points[2])
+		self.topRight, _ = self.setPointAfterButton(
+			circlePosition = points[2]
+		)
 
-		self.middleLeft, _ = self.setPointAfterButton(circlePosition = points[3])
+		self.middleLeft, _ = self.setPointAfterButton(
+			circlePosition = points[3]
+		)
 
-		self.middleCenter, res = self.setPointAfterButton(circlePosition = points[4])
+		self.middleCenter, res = self.setPointAfterButton(
+			circlePosition = points[4]
+		)
 
-		self.middleRight, _ = self.setPointAfterButton(circlePosition = points[5])
+		self.middleRight, _ = self.setPointAfterButton(
+			circlePosition = points[5]
+		)
 
-		self.bottomLeft, _ = self.setPointAfterButton(circlePosition = points[6])
+		self.bottomLeft, _ = self.setPointAfterButton(
+			circlePosition = points[6]
+		)
 
-		self.bottomCenter, _ = self.setPointAfterButton(circlePosition = points[7])
+		self.bottomCenter, _ = self.setPointAfterButton(
+			circlePosition = points[7]
+		)
 
-		self.bottomRight, _ = self.setPointAfterButton(circlePosition = points[8])
+		self.bottomRight, _ = self.setPointAfterButton(
+			circlePosition = points[8]
+		)
 
 		# center relative to video size
 		self.headCenter = self.getAverageEyePosition(res)
@@ -337,7 +417,7 @@ class EyeCalibration:
 		self.run()
 
 	def run(self):
-		self.lookingPointMovAvg.setLength(20)
+		self.lookingPointMovAvg.setLength(10)
 		self.setPointAfterButton(27)
 
 if __name__ == "__main__":
