@@ -23,9 +23,6 @@ class EyeCalibration:
 
 		self.bottomRight = None
 
-		self.xBias = 0
-		self.yBias = 0
-
 		self.xMin = 0
 		self.yMin = 0
 		self.xMax = self.tracker.getXScale()
@@ -60,16 +57,16 @@ class EyeCalibration:
 
 		return Point(
 			self.tracker.mapVal(
-				mirroredAvgX + self.xBias,
-				self.xMin - self.rangePadding + self.xBias,
-				self.xMax + self.rangePadding + self.xBias,
+				mirroredAvgX,
+				self.xMin - self.rangePadding,
+				self.xMax + self.rangePadding,
 				self.translationXMin,
 				self.translationXMax
 			),
 			self.tracker.mapVal(
-				mirroredAvgY + self.yBias,
-				self.yMin - self.rangePadding + self.yBias,
-				self.yMax + self.rangePadding + self.yBias,
+				mirroredAvgY,
+				self.yMin - self.rangePadding,
+				self.yMax + self.rangePadding,
 				self.translationYMin,
 				self.translationYMax
 			)
@@ -259,7 +256,7 @@ class EyeCalibration:
 		]
 
 	def setCornerPointsInteractive(self):
-		self.lookingPointMovAvg.setLength(10)
+		self.lookingPointMovAvg.setLength(15)
 
 		points = self.generateCalibrationPoints(3)
 
@@ -289,16 +286,19 @@ class EyeCalibration:
 			self.middleRight.x + 
 			self.bottomRight.x
 		) / 3
+
 		self.xMin = (
 			self.topLeft.x + 
 			self.middleLeft.x + 
 			self.bottomLeft.x
 		) / 3
+
 		self.yMax = (
 			self.bottomCenter.y + 
 			self.bottomLeft.y + 
 			self.bottomRight.y
 		) / 3
+
 		self.yMin = (
 			self.topCenter.y + 
 			self.topLeft.y + 
@@ -332,19 +332,12 @@ class EyeCalibration:
 		except ValueError:
 			return Point(0, 0)
 
-	def getAverageBias(self):
-		return (
-			int(self.translationXMax / 2 - self.middleCenter.x),
-			int(self.translationYMax / 2 - self.middleCenter.y)
-		)
-
 	def calibrate(self):
 		self.setCornerPointsInteractive()
-		self.xBias, self.yBias = self.getAverageBias()
 		self.run()
 
 	def run(self):
-		self.lookingPointMovAvg.setLength(15)
+		self.lookingPointMovAvg.setLength(20)
 		self.setPointAfterButton(27)
 
 if __name__ == "__main__":
