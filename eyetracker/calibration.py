@@ -305,22 +305,22 @@ class EyeCalibration:
 
 	def generateControlRectangles(self, rowNum, _colNum = None):
 		colNum = rowNum if _colNum == None else _colNum
-		xInc = self.canvasDim.x / (rowNum - 1)
-		yInc = self.canvasDim.y / (colNum - 1)
+		xInc = self.canvasDim.x / (rowNum)
+		yInc = self.canvasDim.y / (colNum)
 		return [
 			self.tracker.Rectangle(
 				i * xInc, 
 				j * yInc,
 				xInc,
 				yInc
-			) for j in xrange(rowNum - 1) for i in xrange(colNum - 1)
+			) for j in xrange(rowNum) for i in xrange(colNum)
 		]
 
 	def setCornerPointsInteractive(self):
-		self.lookingPointMovAvg.setLength(15)
+		self.lookingPointMovAvg.setLength(10)
 
 		points = self.generateCalibrationPoints(3)
-		self.rects = self.generateControlRectangles(6)
+		self.rects = self.generateControlRectangles(3)
 
 		self.topLeft, _ = self.setPointAfterButton(
 			circlePosition = points[0]
@@ -417,10 +417,11 @@ class EyeCalibration:
 		self.run()
 
 	def run(self):
-		self.lookingPointMovAvg.setLength(10)
+		self.lookingPointMovAvg.setLength(5)
 		self.setPointAfterButton(27)
 
 if __name__ == "__main__":
+	np.seterr(all='ignore')
 	eyeCalibration = EyeCalibration()
 	eyeCalibration.calibrate()
 

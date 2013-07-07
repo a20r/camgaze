@@ -29,7 +29,7 @@ class MovingAverageList(object):
 
 	def setLength(self, length):
 		if length < len(self.movAvgList):
-			self.movAvgList = self.movAvgList[length - 1 : -1]
+			self.movAvgList = self.movAvgList[-length:]
 		elif length > len(self.movAvgList):
 			lPoint = self.movAvgList[-1]
 			self.movAvgList.extend(
