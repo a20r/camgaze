@@ -150,14 +150,14 @@ class EyeCalibration:
 			pass
 
 		self.drawAllRectangles(img, self.rects)
-		"""
+		
 		cv2.circle(
 			img, 
 			canvasPoint.toTuple(), 
 			5, (0, 0, 255), 5
 		)
 		return self
-		"""
+		
 
 	def updateExistingValue(self, r):
 		r.pupil.centroid = self.movAvgDict[r.getId()]["centroid"].compound(
@@ -417,7 +417,7 @@ class EyeCalibration:
 		self.run()
 
 	def run(self):
-		self.lookingPointMovAvg.setLength(5)
+		self.lookingPointMovAvg.setLength(8)
 		self.setPointAfterButton(27)
 
 if __name__ == "__main__":
