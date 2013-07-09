@@ -6,6 +6,19 @@ from movingaverage import MovingAveragePoints
 from collections import namedtuple
 from point import Point
 
+"""
+TODO:
+	- Train adaptive threshold during calibration phase :- CHECK
+	- Create a function relating angle position from 
+	  corners to size of the blob to make sure that the
+	  the correct eye is being found
+	- Port the algorithm to JavaScript
+	- Use a t-test to specify when there is a change in 
+	  position using the moving average. So after filtering
+	  the outliers out, perform a t-test and if there
+	  is a statistical difference, update the position.
+"""
+
 class EyeCalibration:
 
 	def __init__(self):
@@ -42,7 +55,11 @@ class EyeCalibration:
 			self.tracker.getYScale()
 		)
 
-		self.canvasDim = Point(1280, 750)
+		self.canvasDim = Point(1000, 650)
+
+		self.colorPadding = 5
+
+		self.learningColors = dict()
 
 	def getAverageLookingPoint(self, avgDict):
 		avgX = 0
@@ -247,9 +264,15 @@ class EyeCalibration:
 
 		return img
 
+	def updateLearningColors(self, results):
+		for r in results:
+			try:
+				self.learningColors[r.getId()] += [r.getMaxMinColors()]
+			except KeyError:
+				self.learningColors[r.getId()] = [r.getMaxMinColors()]
 
 	# main function that gets the frame
-	def setPointAfterButton(self, button = 32, circlePosition = None):
+	def setPointAfterButton(self, button = 32, circlePosition = None, isLearning = True):
 		while True:
 			_, frame = self.camera.read()
 			self.tracker.setImage(frame)
@@ -278,6 +301,9 @@ class EyeCalibration:
 					circlePosition, 
 					20, (255, 0, 255), -1
 				)
+
+			if isLearning:
+				self.updateLearningColors(results)
 
 			cv2.imshow('Eye Tracking', canvas)
 			if cv2.waitKey(1) == button:
@@ -385,6 +411,22 @@ class EyeCalibration:
 			self.topRight.y
 		) / 3
 
+		colorBounds = Point(0, 0)
+		numTrials = 0
+		for k in self.learningColors.keys():
+			colorBounds += reduce(
+				lambda p1, p2: p1 + p2, 
+				self.learningColors[k]
+			)
+			numTrials += len(self.learningColors[k])
+
+		avgColorMax = colorBounds.x / numTrials
+		avgColorMin = colorBounds.y / numTrials
+
+		print avgColorMin, avgColorMax
+
+		self.tracker.setPupilTrained(avgColorMax, avgColorMin)
+
 	def getAverageEyePosition(self, res):
 		try:
 			return Point( 
@@ -418,7 +460,7 @@ class EyeCalibration:
 
 	def run(self):
 		self.lookingPointMovAvg.setLength(8)
-		self.setPointAfterButton(27)
+		self.setPointAfterButton(27, isLearning = False)
 
 if __name__ == "__main__":
 	np.seterr(all='ignore')

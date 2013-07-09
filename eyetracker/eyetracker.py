@@ -37,7 +37,7 @@ class EyeTracker:
 		# found empircally
 		self.averageContourSize = 10000
 
-		self.MAX_COLOR = 60
+		self.MAX_COLOR = 91
 		self.MIN_COLOR = 0
 
 		self.previousEyes = list()
@@ -128,7 +128,7 @@ class EyeTracker:
 
 	def getPupil(self, img):
 		possiblePupils = list()
-		step = 10
+		step = 7
 
 		for minColor in xrange(
 			self.MIN_COLOR, 
@@ -142,14 +142,14 @@ class EyeTracker:
 					maxColor
 				)
 				if pPupil != None:
-					possiblePupils.append(pPupil)
+					possiblePupils.append((pPupil, maxColor, minColor))
 
 		if len(possiblePupils) == 0:
 			return None
 
 		return reduce(
 			lambda p1, p2: 
-			p1 if self.weightPupil(p1) < self.weightPupil(p2) 
+			p1 if self.weightPupil(p1[0]) < self.weightPupil(p2[0]) 
 			else p2, 
 			possiblePupils
 		)
@@ -182,7 +182,6 @@ class EyeTracker:
 		return pupilBList[maxIndex]
 
 	def drawPupils(self, img_centroid, pb, eyeStats):
-		eyeStats.setPupil(pb)
 		cv2.circle(
 			img_centroid, 
 			pb.getCentroid().toTuple(), 
@@ -267,6 +266,17 @@ class EyeTracker:
 				eyeStats.setFace(self.Rectangle(x, y, w, h))
 				return
 
+	def setPupilTrained(self, maxColor, minColor):
+		self.getPupil = lambda img: (
+			self.getUnfilteredPupil(
+				img, 
+				minColor, 
+				maxColor
+			),
+			maxColor,
+			minColor
+		)
+
 	def track(self):
 		trackingStats = TrackingStats()
 
@@ -303,9 +313,15 @@ class EyeTracker:
 			img_centroid = np.copy(img)
 			img_tracking = np.copy(img)
 
-			pupil = self.getPupil(img)
-			if pupil == None:
+			try:
+				pupil, maxColor, minColor = self.getPupil(img)
+				if pupil == None:
+					raise TypeError
+			except TypeError:
 				continue
+
+			eyeStats.setPupil(pupil)
+			eyeStats.setMaxMinColors(maxColor, minColor)
 
 			# draws the pupil onto the image
 			cv2.drawContours(

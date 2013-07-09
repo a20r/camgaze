@@ -14,6 +14,8 @@ class EyeStats(object):
 		self.uId = None
 		self.trackingImage = None
 		self.faceRect = None
+		self.maxColor = None
+		self.minColor = None
 
 	def norm(self, p1, p2):
 		"""
@@ -55,6 +57,14 @@ class EyeStats(object):
 	def setTrackingImage(self, image):
 		self.trackingImage = image
 		return self
+
+	def setMaxMinColors(self, maxColor, minColor):
+		self.maxColor = maxColor
+		self.minColor = minColor
+		return self
+
+	def getMaxMinColors(self):
+		return Point(self.maxColor, self.minColor)
 
 	def getFace(self):
 		return self.faceRect
