@@ -9,6 +9,7 @@ from point import Point
 """
 TODO:
 	- Train adaptive threshold during calibration phase :- CHECK
+	- CLEAN THIS SHIT UP 
 	- Create a function relating angle position from 
 	  corners to size of the blob to make sure that the
 	  the correct eye is being found
