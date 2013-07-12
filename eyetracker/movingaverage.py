@@ -1,4 +1,4 @@
-ha
+
 from collections import namedtuple
 import numpy as np
 from functools import partial

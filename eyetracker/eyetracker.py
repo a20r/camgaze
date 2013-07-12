@@ -26,7 +26,8 @@ class EyeTracker:
 		)
 
 		# pupil color constants
-		self.pupilThresh = 7000
+		self.pupilThresh = 0
+		print "balls"
 
 		# the resized width and height for analysis
 		self.xScale = 640
@@ -37,7 +38,7 @@ class EyeTracker:
 		# found empircally
 		self.averageContourSize = 25000
 
-		self.MAX_COLOR = 50
+		self.MAX_COLOR = 40
 		self.MIN_COLOR = 0
 
 		self.previousEyes = list()

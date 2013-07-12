@@ -56,7 +56,7 @@ class EyeCalibration:
 			self.tracker.getYScale()
 		)
 
-		self.canvasDim = Point(1280, 760)
+		self.canvasDim = Point(1280, 770)
 
 		self.colorPadding = 5
 
@@ -147,6 +147,7 @@ class EyeCalibration:
 		)
 
 		try:
+			raise AttributeError
 			boundaryRect = self.getBoundaryRect(
 				canvasPoint, 
 				self.rects
@@ -167,7 +168,7 @@ class EyeCalibration:
 		except AttributeError:
 			pass
 
-		self.drawAllRectangles(img, self.rects)
+		#self.drawAllRectangles(img, self.rects)
 		
 		cv2.circle(
 			img, 
@@ -290,11 +291,11 @@ class EyeCalibration:
 
 			img = self.drawFilteredGaze(raw_img, results)
 
-			img = cv2.resize(img, (320, 240))
+			img = cv2.resize(img, (1280, 770))
 
 			flippedImage = cv2.flip(img, 1)
 
-			canvas[0:240, 0:320] = flippedImage
+			canvas[0:770, 0:1280] = flippedImage
 
 			self.drawCanvas(canvas, avgDict, results)
 
