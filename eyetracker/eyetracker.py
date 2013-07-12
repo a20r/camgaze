@@ -13,6 +13,10 @@ class EyeTracker:
 
 		self.Rectangle = namedtuple("Rectangle", "x y w h")
 
+		# the resized width and height for analysis
+		self.xScale = 640
+		self.yScale = 480
+
 		if img_input != None:
 			self.img_input = img_input
 			self.img_orig = cv2.resize(
@@ -27,16 +31,9 @@ class EyeTracker:
 
 		# pupil color constants
 		self.pupilThresh = 0
-		print "balls"
-
-		# the resized width and height for analysis
-		self.xScale = 640
-		self.yScale = 480
-
-		self.padding = 10
 
 		# found empircally
-		self.averageContourSize = 25000
+		self.averageContourSize = 20000
 
 		self.MAX_COLOR = 40
 		self.MIN_COLOR = 0

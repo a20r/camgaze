@@ -170,11 +170,13 @@ class EyeCalibration:
 
 		#self.drawAllRectangles(img, self.rects)
 		
+		"""
 		cv2.circle(
 			img, 
 			canvasPoint.toTuple(), 
 			5, (0, 0, 255), 5
 		)
+		"""
 		return self
 		
 
