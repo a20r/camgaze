@@ -56,7 +56,7 @@ class EyeCalibration:
 			self.tracker.getYScale()
 		)
 
-		self.canvasDim = Point(1000, 650)
+		self.canvasDim = Point(1280, 760)
 
 		self.colorPadding = 5
 
@@ -273,6 +273,8 @@ class EyeCalibration:
 				self.learningColors[r.getId()] = [r.getMaxMinColors()]
 
 	# main function that gets the frame
+	# gets statistics about the frame 
+	# after a specified button is pressed
 	def setPointAfterButton(self, button = 32, circlePosition = None, isLearning = True):
 		while True:
 			_, frame = self.camera.read()
@@ -319,6 +321,7 @@ class EyeCalibration:
 		except AttributeError:
 			return Point(0, 0)
 
+	# points used for calibration
 	def generateCalibrationPoints(self, rowNum, _colNum = None):
 		colNum = rowNum if _colNum == None else _colNum
 		xInc = self.canvasDim.x / (rowNum - 1)
@@ -330,6 +333,7 @@ class EyeCalibration:
 			) for j in xrange(rowNum) for i in xrange(colNum)
 		]
 
+	# rectangles used in the demo to see where you are looking
 	def generateControlRectangles(self, rowNum, _colNum = None):
 		colNum = rowNum if _colNum == None else _colNum
 		xInc = self.canvasDim.x / (rowNum)
@@ -344,7 +348,7 @@ class EyeCalibration:
 		]
 
 	def setCornerPointsInteractive(self):
-		self.lookingPointMovAvg.setLength(10)
+		self.lookingPointMovAvg.setLength(15)
 
 		points = self.generateCalibrationPoints(3)
 		self.rects = self.generateControlRectangles(3)

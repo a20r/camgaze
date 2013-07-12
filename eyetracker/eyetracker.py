@@ -26,7 +26,7 @@ class EyeTracker:
 		)
 
 		# pupil color constants
-		self.pupilThresh = 9000
+		self.pupilThresh = 7000
 
 		# the resized width and height for analysis
 		self.xScale = 640
@@ -35,9 +35,9 @@ class EyeTracker:
 		self.padding = 10
 
 		# found empircally
-		self.averageContourSize = 10000
+		self.averageContourSize = 25000
 
-		self.MAX_COLOR = 91
+		self.MAX_COLOR = 50
 		self.MIN_COLOR = 0
 
 		self.previousEyes = list()
@@ -69,8 +69,8 @@ class EyeTracker:
 	  )
 
 	def getAngle(self, P1, P2):
-		deltaY = P2[1] - P1[1]
-		deltaX = P2[0] - P1[0]
+		deltaY = abs(P2[1] - P1[1])
+		deltaX = abs(P2[0] - P1[0])
 		angleInDegrees = np.arctan(
 			float(deltaY) / float(deltaX)
 		) * 180 / np.pi
@@ -78,57 +78,37 @@ class EyeTracker:
 		return angleInDegrees
 
 	# takes in a tuple point NOT A BLOB
-	def getAverageAngle(self, p):
+	def getAverageAngleDeviation(self, p):
 		cornerList = [(0, 0), (self.xScale, 0), 
 			(0, self.yScale), (self.xScale, self.yScale)]
 		return np.mean(
 			map(
 				lambda corner: abs(
-					self.getAngle(p, corner)
+					45 - self.getAngle(p, corner)
 				), 
 				cornerList
 			)
 		)
 
+	# determines how close a proposed pupils is
+	# to the probabilistic modal
 	def weightPupil(self, possiblePupil):
 		angleDev = abs(
-			self.getAverageAngle(
+			self.getAverageAngleDeviation(
 				possiblePupil.getCentroid()
-			) - 22.5
+			)
 		)
 		sizeDev = abs(
 			possiblePupil.getContourArea() - 
 			self.averageContourSize
 		)
-		return angleDev * sizeDev
+		return (sizeDev) * (angleDev)
 
-	def filterAngle(self, p1, p2, padding):
-		return (
-			abs(self.getAngle(p1, p2)) < padding or
-			abs(self.getAngle(p1, p2)) - 45 < padding
-		)
-
-	def filterBlobs(self, blobList, padding):
-		cornerList = [
-			(0, 0), 
-			(self.xScale, 0), 
-			(0, self.yScale), 
-			(self.xScale, self.yScale)
-		]
-		return filter(
-			lambda b: all(
-				self.filterAngle(
-					b.getCentroid(), 
-					corner, 
-					self.padding
-				) for corner in cornerList
-			), 
-			blobList
-		)
-
+	# gets the pupil based on the weight
+	# function
 	def getPupil(self, img):
 		possiblePupils = list()
-		step = 7
+		step = 5
 
 		for minColor in xrange(
 			self.MIN_COLOR, 
@@ -136,13 +116,16 @@ class EyeTracker:
 			for maxColor in xrange(
 				minColor + step, 
 				self.MAX_COLOR, step):
-				pPupil = self.getUnfilteredPupil(
+				pPupils = self.getUnfilteredPupils(
 					img, 
-					minColor, 
-					maxColor
+					maxColor, 
+					minColor
 				)
-				if pPupil != None:
-					possiblePupils.append((pPupil, maxColor, minColor))
+				if pPupils != None:
+					possiblePupils += [
+						(pPupil, maxColor, minColor) 
+						for pPupil in pPupils
+					]
 
 		if len(possiblePupils) == 0:
 			return None
@@ -154,7 +137,9 @@ class EyeTracker:
 			possiblePupils
 		)
 
-	def getUnfilteredPupil(self, img, minColor, maxColor):
+	# thresholds the binary image and 
+	# returns the blobs found
+	def getUnfilteredPupils(self, img, maxColor, minColor):
 
 		# creates a binary image via color segmentation
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -165,21 +150,11 @@ class EyeTracker:
 			self._val2np(maxColor)
 		)
 		pupilBList = blob.getBlobs(pupilBW, self.pupilThresh)
-		pupilBList = self.filterBlobs(pupilBList, self.padding)
 
 		if len(pupilBList) == 0:
 			return None
 
-		maxIndex = [
-			i for i, j in enumerate(pupilBList) 
-			if j.getContourArea() == max(
-				map(
-					lambda pupil: pupil.getContourArea(), 
-					pupilBList
-				)
-			)
-		][0]
-		return pupilBList[maxIndex]
+		return pupilBList
 
 	def drawPupils(self, img_centroid, pb, eyeStats):
 		cv2.circle(
@@ -236,6 +211,8 @@ class EyeTracker:
 	def getRectSizes(self, rects):
 		return map(lambda rect: rect[2] * rect[3], rects)
 
+	# makes the rectangles the same size so
+	# there is less jitter and vector deviation
 	def filterRectSize(self, rects):
 		try:
 			W, H = [(w, h) for _, _, w, h in rects 
@@ -252,30 +229,25 @@ class EyeTracker:
 		except IndexError:
 			return list()
 
-	def matchFace(self, eyeStats, faceRects):
-		hr = eyeStats.getHaarRectangle()
-		haarCentroid = Point(
-			hr.x + hr.w / 2, 
-			hr.y + hr.h / 2
-		)
-		for x, y, w, h in faceRects:
-			if haarCentroid.x <= x + w and \
-				haarCentroid.x >= x and \
-				haarCentroid.y <= y + h and \
-				haarCentroid.y >= y:
-				eyeStats.setFace(self.Rectangle(x, y, w, h))
-				return
-
+	# called when the calibration or training part 
+	# of the program has finished executing and 
+	# the max and min colors are known for the 
+	# user environment
 	def setPupilTrained(self, maxColor, minColor):
-		self.getPupil = lambda img: (
-			self.getUnfilteredPupil(
-				img, 
-				minColor, 
-				maxColor
-			),
-			maxColor,
-			minColor
-		)
+		def _getPupil(img):
+			pPupils = self.getUnfilteredPupils(
+						img, 
+						maxColor, 
+						minColor
+					)
+			possiblePupils = [(p, maxColor, minColor) for p in pPupils]
+			return reduce(
+				lambda p1, p2: 
+				p1 if self.weightPupil(p1[0]) < self.weightPupil(p2[0]) 
+				else p2, 
+				possiblePupils
+			)
+		self.getPupil = _getPupil
 
 	def track(self):
 		trackingStats = TrackingStats()
@@ -289,8 +261,8 @@ class EyeTracker:
 				img, 
 				cv2.COLOR_BGR2GRAY
 			), 
-			scaleFactor = 2.2, 
-			minNeighbors = 4, 
+			scaleFactor = 1.9, 
+			minNeighbors = 3, 
 			maxSize = (200, 200), 
 			minSize = (0, 0)
 		)
