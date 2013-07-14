@@ -33,7 +33,7 @@ class EyeCalibration:
 			), 5
 		)
 
-		self.movAvgLength = 3
+		self.movAvgLength = 5
 
 		self.bottomRight = None
 
