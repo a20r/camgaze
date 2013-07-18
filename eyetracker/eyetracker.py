@@ -260,7 +260,7 @@ class EyeTracker:
 				cv2.COLOR_BGR2GRAY
 			), 
 			scaleFactor = 1.9, 
-			minNeighbors = 3, 
+			minNeighbors = 1, 
 			maxSize = (200, 200), 
 			minSize = (0, 0)
 		)

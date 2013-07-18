@@ -121,6 +121,10 @@ class EyeStats(object):
 			)
 		)
 
+	# xSize and ySize are the values that the
+	# the eye image is scaled to. These values
+	# are needed because the centroid is relative
+	# to that size.
 	def getCornerVectors(self, xSize, ySize):
 		CornerVectors = namedtuple(
 			"CornerVectors", 

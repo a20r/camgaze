@@ -441,9 +441,7 @@ class EyeCalibration:
 				int(
 					np.mean(
 						map(
-							lambda eye: self.getCenter(
-								eye.getHaarRectangle()
-							).x,
+							lambda eye: eye.getHaarCentroid().x,
 							res
 						)
 					)
@@ -451,9 +449,7 @@ class EyeCalibration:
 				int(
 					np.mean(
 						map(
-							lambda eye: self.getCenter(
-								eye.getHaarRectangle()
-							).y,
+							lambda eye: eye.getHaarCentroid().y,
 							res
 						)
 					)
