@@ -35,7 +35,7 @@ class EyeTracker:
 		# found empircally
 		self.averageContourSize = 20000
 
-		self.MAX_COLOR = 40
+		self.MAX_COLOR = 35
 		self.MIN_COLOR = 0
 
 		self.previousEyes = list()
