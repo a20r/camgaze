@@ -281,6 +281,13 @@ class EyeCalibration:
 	def setPointAfterButton(self, button = 32, circlePosition = None, isLearning = True):
 		while True:
 			_, frame = self.camera.read()
+
+			"""
+			Look at the code below when developing 
+			camgaze.js. The rest of this code is just
+			for different phases of the program and 
+			should be left as an application.
+			"""
 			self.tracker.setImage(frame)
 
 			results = self.tracker.track()

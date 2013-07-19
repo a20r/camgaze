@@ -115,3 +115,5 @@ class TrackingStats(object):
 				"Cannot index the class using type: " +
 				type(key)
 			)
+
+			
