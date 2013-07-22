@@ -89,7 +89,7 @@ class EyeTracker:
 		)
 
 	# determines how close a proposed pupils is
-	# to the probabilistic modal
+	# to the probabilistic model
 	def weightPupil(self, possiblePupil):
 		angleDev = abs(
 			self.getAverageAngleDeviation(
